@@ -9,8 +9,8 @@ import {
 import { SignInParams, SignUpParams } from "./interfaces";
 
 export class AwsCognitoService {
-  private userPoolId = "us-east-1_cCTLAwRsM";
-  private clientId = "74m2e7re4jnq7c7aqb11niba8v";
+  private userPoolId = "xxxx";
+  private clientId = "xxxx";
   private userPool: CognitoUserPool;
 
   constructor() {
