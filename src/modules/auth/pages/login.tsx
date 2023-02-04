@@ -13,24 +13,47 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
-import { AwsCognitoService } from "../../../services/cognito/aws-cognito";
-import { LoginService } from "../services/login.service";
+import { useNavigate } from "react-router-dom";
+import "amazon-cognito-identity-js";
+import { AuthProvider } from "../../../libs/auth/auth_provider/auth_provider";
+import { CognitoAuthProvider } from "../../../libs/auth/auth_provider/cognito/cognito_auth_provider";
+import {
+  NotAuthorizedException,
+  UserNotConfirmedException,
+} from "../../../libs/auth/auth_provider/erros";
 
 export default function LoginPage() {
+  const authProvider: AuthProvider = new CognitoAuthProvider();
+
   const {
     register,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm();
 
+  const navigate = useNavigate();
+
   const handleLogin = async ({ username, password }: any) => {
     try {
-      const loginService = new LoginService(new AwsCognitoService());
+      const session = await authProvider.signIn({ username, password });
 
-      await loginService.login(username, password);
-    } catch (e) {
-      console.log(e);
+      if (session) {
+        authProvider.setUserSession(session);
+      }
+    } catch (e: any) {
+      if (e instanceof UserNotConfirmedException) {
+        await handleConfirmationError({ username });
+      }
+
+      if (e instanceof NotAuthorizedException) {
+        console.log(e.message);
+      }
     }
+  };
+
+  const handleConfirmationError = async ({ username }: any) => {
+    await authProvider.sendConfirmationCode(username);
+    navigate(`/verify-email?username=${username}`);
   };
 
   return (

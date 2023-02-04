@@ -1,18 +1,46 @@
-import { Center, Heading } from "@chakra-ui/react";
+import { Center, Heading, Link } from "@chakra-ui/react";
 import {
   Button,
   FormControl,
   Flex,
-  Input,
   Stack,
   useColorModeValue,
   HStack,
+  Text,
 } from "@chakra-ui/react";
 import { PinInput, PinInputField } from "@chakra-ui/react";
+import { useSearchParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { AuthProvider } from "../../../libs/auth/auth_provider/auth_provider";
+import { CognitoAuthProvider } from "../../../libs/auth/auth_provider/cognito/cognito_auth_provider";
 
-export default function VerifyEmailPage(): JSX.Element {
+export default function VerifyEmailPage() {
+  const authProvider: AuthProvider = new CognitoAuthProvider();
+
+  const [searchParams] = useSearchParams();
+  const username = searchParams.get("username");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm();
+
+  const handleVerify = async ({ username, code }: any) => {
+    await authProvider.confirmSignUp(username, code);
+  };
+
+  const sendCodeAgain = async ({ username }: any) => {
+    await authProvider.sendConfirmationCode(username);
+  };
+
   return (
-    <form>
+    <form
+      onSubmit={handleSubmit((data: any) => {
+        const code = Object.values(data).join("");
+        handleVerify({ code, username });
+      })}
+    >
       <Flex
         minH={"100vh"}
         align={"center"}
@@ -38,25 +66,27 @@ export default function VerifyEmailPage(): JSX.Element {
             fontSize={{ base: "sm", sm: "md" }}
             color={useColorModeValue("gray.800", "gray.400")}
           >
-            We have sent code to your email
+            <Text textAlign="center">
+              We have sent code to email registered in your account{" "}
+            </Text>
           </Center>
           <Center
             fontSize={{ base: "sm", sm: "md" }}
             fontWeight="bold"
             color={useColorModeValue("gray.800", "gray.400")}
           >
-            username@mail.com
+            {username ?? "missing param"}
           </Center>
           <FormControl>
             <Center>
               <HStack>
                 <PinInput>
-                  <PinInputField />
-                  <PinInputField />
-                  <PinInputField />
-                  <PinInputField />
-                  <PinInputField />
-                  <PinInputField />
+                  <PinInputField {...register("f1", { required: true })} />
+                  <PinInputField {...register("f2", { required: true })} />
+                  <PinInputField {...register("f3", { required: true })} />
+                  <PinInputField {...register("f4", { required: true })} />
+                  <PinInputField {...register("f5", { required: true })} />
+                  <PinInputField {...register("f6", { required: true })} />
                 </PinInput>
               </HStack>
             </Center>
@@ -73,6 +103,14 @@ export default function VerifyEmailPage(): JSX.Element {
               Verify
             </Button>
           </Stack>
+          <Center>
+            <Link
+              color={"blue.400"}
+              onClick={() => sendCodeAgain({ username })}
+            >
+              Resend code
+            </Link>
+          </Center>
         </Stack>
       </Flex>
     </form>

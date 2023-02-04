@@ -17,18 +17,17 @@ import {
 import { useState } from "react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useForm } from "react-hook-form";
-import { CognitoUserAttribute } from "amazon-cognito-identity-js";
-import { AwsCognitoService } from "../../../services/cognito/aws-cognito";
-import { RegisterService } from "../services/register.service";
+import { useNavigate } from "react-router-dom";
+import { AuthProvider } from "../../../libs/auth/auth_provider/auth_provider";
+import { CognitoAuthProvider } from "../../../libs/auth/auth_provider/cognito/cognito_auth_provider";
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
+  const authProvider: AuthProvider = new CognitoAuthProvider();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm();
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+  const { register, handleSubmit } = useForm();
 
   const handleRegister = async ({
     username,
@@ -37,17 +36,16 @@ export default function RegisterPage() {
     lastName,
     email,
   }: any) => {
-    const cognitoService = new AwsCognitoService();
-    const registerService = new RegisterService(cognitoService);
-
     try {
-      await registerService.register({
+      await authProvider.signUp({
         username,
         password,
         firstName,
         lastName,
         email,
       });
+
+      navigate(`/verify-email?username=${username}`);
     } catch (e) {
       console.log(e);
     }

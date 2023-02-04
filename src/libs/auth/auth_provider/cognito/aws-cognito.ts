@@ -6,11 +6,26 @@ import {
   CognitoUserSession,
   ISignUpResult,
 } from "amazon-cognito-identity-js";
-import { SignInParams, SignUpParams } from "./interfaces";
 
-export class AwsCognitoService {
-  private userPoolId = "xxxx";
-  private clientId = "xxxx";
+interface CognitoSingUpParams {
+  username: string;
+  password: string;
+  attributes: CognitoUserAttribute[];
+  validationData?: CognitoUserAttribute[];
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+interface CognitoSingInParams {
+  username: string;
+  password: string;
+}
+
+export class AwsCognito {
+  private userPoolId = import.meta.env.VITE_USER_POOL_ID as string;
+  private clientId = import.meta.env.VITE_COGNITO_CLIENT_ID as string;
+
   private userPool: CognitoUserPool;
 
   constructor() {
@@ -20,7 +35,7 @@ export class AwsCognitoService {
     });
   }
 
-  signUp(params: SignUpParams): Promise<ISignUpResult | undefined> {
+  signUp(params: CognitoSingUpParams): Promise<ISignUpResult | undefined> {
     return new Promise((resolve, reject) => {
       this.userPool.signUp(
         params.username,
@@ -46,14 +61,13 @@ export class AwsCognitoService {
   }
 
   signIn(
-    params: SignInParams,
+    params: CognitoSingInParams,
     cognitoUser: CognitoUser
   ): Promise<CognitoUserSession> {
     const authenticationDetails = new AuthenticationDetails({
       Password: params.password,
-      Username: params.email as string,
+      Username: params.username as string,
     });
-    console.log(authenticationDetails);
     return new Promise((resolve, reject) =>
       cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: (result) => {
@@ -74,6 +88,23 @@ export class AwsCognitoService {
 
     return new Promise((resolve, reject) =>
       cognitoUser.confirmRegistration(code, true, (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      })
+    );
+  }
+
+  resendConfirmationCode(username: string): Promise<void> {
+    const cognitoUser = new CognitoUser({
+      Pool: this.userPool,
+      Username: username,
+    });
+
+    return new Promise((resolve, reject) =>
+      cognitoUser.resendConfirmationCode((err, result) => {
         if (err) {
           reject(err);
         } else {
