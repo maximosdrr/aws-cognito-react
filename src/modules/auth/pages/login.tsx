@@ -21,9 +21,11 @@ import {
   NotAuthorizedException,
   UserNotConfirmedException,
 } from "../../../libs/auth/auth_provider/erros";
+import { useState } from "react";
 
 export default function LoginPage() {
   const authProvider: AuthProvider = new CognitoAuthProvider();
+  const [username, setUsername] = useState("");
 
   const {
     register,
@@ -54,6 +56,10 @@ export default function LoginPage() {
   const handleConfirmationError = async ({ username }: any) => {
     await authProvider.sendConfirmationCode(username);
     navigate(`/verify-email?username=${username}`);
+  };
+
+  const handleForgotPassword = async () => {
+    navigate(`/reset-password?username=${username}`);
   };
 
   return (
@@ -90,6 +96,7 @@ export default function LoginPage() {
                     id="username"
                     type="text"
                     {...register("username", { required: true })}
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                 </FormControl>
                 <FormControl mt={2}>
@@ -107,7 +114,9 @@ export default function LoginPage() {
                     justify={"space-between"}
                   >
                     <Checkbox {...register("rememberMe")}>Remember me</Checkbox>
-                    <Link color={"blue.400"}>Forgot password?</Link>
+                    <Link color={"blue.400"} onClick={handleForgotPassword}>
+                      Forgot password?
+                    </Link>
                   </Stack>
                   <Button
                     type="submit"
