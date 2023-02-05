@@ -9,12 +9,8 @@ import {
   UserNotConfirmedException,
 } from "../erros";
 
-export class CognitoAuthProvider extends AuthProvider implements AuthProvider {
+export class CognitoAuthProvider implements AuthProvider {
   private awsCognito = new AwsCognito();
-
-  constructor() {
-    super();
-  }
 
   async signUp(params: SignUpParams): Promise<SignUpResult> {
     const firstNameAttr = new CognitoUserAttribute({
@@ -103,13 +99,43 @@ export class CognitoAuthProvider extends AuthProvider implements AuthProvider {
     }
   }
 
-  refreshSession(): Promise<void> {
-    throw new Error("Method not implemented.");
+  async refreshSession(): Promise<void> {
+    try {
+      await this.awsCognito.refreshSession();
+    } catch (e: any) {
+      throw new AuthProviderException(e.message);
+    }
   }
   signOut(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  getCurrentUser(): User {
-    throw new Error("Method not implemented.");
+
+  async getCurrentUser(): Promise<User> {
+    try {
+      const currentUser = await this.awsCognito.getCurrentUser();
+
+      if (!currentUser) throw new AuthProviderException("User not found");
+
+      const username = currentUser.getUsername();
+
+      const attrs = await this.awsCognito.getCurrentUserAttributes();
+
+      const { email } = attrs;
+
+      return {
+        username,
+        email,
+      };
+    } catch (e: any) {
+      throw new AuthProviderException(e.message);
+    }
+  }
+
+  async resetPassword(username: string): Promise<void> {
+    try {
+      return this.awsCognito.forgotPassword(username);
+    } catch (e: any) {
+      throw new AuthProviderException(e.message);
+    }
   }
 }

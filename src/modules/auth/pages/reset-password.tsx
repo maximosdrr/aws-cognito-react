@@ -10,8 +10,11 @@ import {
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
+import { AuthProvider } from "../../../libs/auth/auth_provider/auth_provider";
+import { CognitoAuthProvider } from "../../../libs/auth/auth_provider/cognito/cognito_auth_provider";
 
 export default function ForgotPasswordPage() {
+  const authProvider: AuthProvider = new CognitoAuthProvider();
   const [searchParams] = useSearchParams();
   const username = searchParams.get("username") ?? "";
 
@@ -22,7 +25,7 @@ export default function ForgotPasswordPage() {
   } = useForm();
 
   const handleResetPassword = async (data: any) => {
-    console.log(data);
+    await authProvider.resetPassword(data.username);
   };
 
   return (
@@ -67,6 +70,7 @@ export default function ForgotPasswordPage() {
           </FormControl>
           <Stack spacing={6}>
             <Button
+              type="submit"
               bg={"blue.400"}
               color={"white"}
               _hover={{

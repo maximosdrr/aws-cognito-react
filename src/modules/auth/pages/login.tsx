@@ -37,12 +37,9 @@ export default function LoginPage() {
 
   const handleLogin = async ({ username, password }: any) => {
     try {
-      const session = await authProvider.signIn({ username, password });
-
-      if (session) {
-        authProvider.setUserSession(session);
-      }
+      await authProvider.signIn({ username, password });
     } catch (e: any) {
+      console.log(e);
       if (e instanceof UserNotConfirmedException) {
         await handleConfirmationError({ username });
       }

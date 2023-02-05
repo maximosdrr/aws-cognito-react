@@ -13,14 +13,6 @@ export abstract class AuthProvider {
   abstract sendConfirmationCode(username: string): Promise<void>;
   abstract refreshSession(): Promise<void>;
   abstract signOut(): Promise<void>;
-  abstract getCurrentUser(): User;
-
-  getUserSession(): UserSession {
-    const session = localStorage.getItem("USER_SESSION");
-    return session ? JSON.parse(session) : null;
-  }
-
-  setUserSession(session: UserSession) {
-    localStorage.setItem("USER_SESSION", JSON.stringify(session));
-  }
+  abstract getCurrentUser(): Promise<User>;
+  abstract resetPassword(username: string): Promise<void>;
 }
